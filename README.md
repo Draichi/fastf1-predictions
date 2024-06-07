@@ -4,6 +4,8 @@
 
 FastF1 Predictions is an innovative project aimed at predicting lap times in Formula 1 using telemetry data. Accurate lap time predictions are crucial in Formula 1 as they can influence strategic decisions during races, qualifying, and practice sessions. By leveraging advanced machine learning algorithms, FastF1 Predictions seeks to provide precise and reliable predictions to enhance the competitive edge of teams and drivers.
 
+![image](./notebooks/images/sector-time.png)
+
 ## Purpose
 
 The primary goal of FastF1 Predictions is to utilize historical race data and telemetry to forecast lap times. This predictive capability can aid in optimizing race strategies, making informed decisions on tire changes, and evaluating driver performance. The project employs machine learning techniques, specifically Random Forest and Gradient Boosted Decision Trees, to build robust predictive models.
@@ -13,7 +15,7 @@ The primary goal of FastF1 Predictions is to utilize historical race data and te
 Currently, the project includes:
 
 - **notebooks/**: A directory containing Jupyter notebooks.
-  - **lap_time_prediction.ipynb**: A demonstration notebook showcasing how to use the algorithms to predict lap times based on historical telemetry data.
+  - **sector-3-time-prediction.ipynb**: A demonstration notebook showcasing how to use the algorithms to predict lap times based on historical telemetry data.
 
 Future updates will expand the repository with more resources, including additional notebooks, scripts, and enhanced functionalities.
 
@@ -30,7 +32,7 @@ Ensure you have Python installed (version 3.9).
 1. Clone the repository:
 
    ```sh
-   git clone https://github.com/yourusername/fastf1-predictions.git
+   git clone https://github.com/Draichi/fastf1-predictions.git
    cd fastf1-predictions
    ```
 
@@ -64,7 +66,7 @@ Ensure you have Python installed (version 3.9).
    jupyter notebook
    ```
 
-3. Open `lap_time_prediction.ipynb` and run the cells to see the lap time prediction in action.
+3. Open `sector-3-time-prediction.ipynb` and run the cells to see the lap time prediction in action.
 
 ## Vision for the Future
 
