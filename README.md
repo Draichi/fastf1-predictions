@@ -40,37 +40,22 @@ Ensure you have Python installed (version 3.9).
 
    ```sh
    # Using Conda (recommended)
-   conda create -n fastf1-predictions python=3.9
-
-   # Using venv
-   python -m venv venv
-   source venv/bin/activate   # On Windows, use `venv\Scripts\activate`
-   ```
-
-3. Install the required dependencies:
-   ```sh
-   pip install -r requirements.txt
-   ```
+   conda env create --file environment.yml
+```
 
 ### Running the Notebook
 
-1. Navigate to the `notebooks` directory:
+1. Launch Jupyter Notebook:
 
    ```sh
-   cd notebooks
+   jupyter
    ```
 
-2. Launch Jupyter Notebook:
-
-   ```sh
-   jupyter notebook
-   ```
-
-3. Open `sector-3-time-prediction.ipynb` and run the cells to see the lap time prediction in action.
+2. Open `sector-3-time-prediction.ipynb` and run the cells to see the lap time prediction in action.
 
 ## Vision for the Future
 
-The potential for FastF1 Predictions is immense. As we continue to gather more data and refine our models, we aim to incorporate additional data sources such as weather conditions. Moreover, we plan to explore advanced modeling techniques, including deep learning and reinforcement learning methods, to further enhance prediction accuracy.
+The potential for FastF1 Predictions is immense. As we continue to gather more data and refine our models, we aim to incorporate additional data sources such as weather conditions. Moreover, we plan to explore advanced modeling techniques, including deep learning, Agent LLM and reinforcement learning methods, to further enhance prediction accuracy.
 
 Stay tuned for updates, and thank you for your support!
 
