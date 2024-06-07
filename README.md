@@ -41,7 +41,7 @@ Ensure you have Python installed (version 3.9).
    ```sh
    # Using Conda (recommended)
    conda env create --file environment.yml
-```
+   ```
 
 ### Running the Notebook
 
