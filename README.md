@@ -15,7 +15,7 @@ The primary goal of FastF1 Predictions is to utilize historical race data and te
 Currently, the project includes:
 
 - **notebooks/**: A directory containing Jupyter notebooks.
-  - **[sector-3-time-prediction.ipynb](./notebooks/sector-3-time-prediction.ipynb)**: A demonstration notebook showcasing how to use the algorithms to predict lap times based on historical telemetry data.
+  - **[sector-3-time-prediction.ipynb](./notebooks/sector-3-time-prediction.ipynb)**: A demonstration notebook showcasing how to use the algorithms to predict lap times based on historical telemetry data. There's also a [Kaggle notebook](https://www.kaggle.com/code/lucasdraichi/hamilton-lap-time-prediction)
 
 Future updates will expand the repository with more resources, including additional notebooks, scripts, and enhanced functionalities.
 
