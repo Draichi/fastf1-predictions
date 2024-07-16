@@ -9,8 +9,9 @@ from langchain_openai import ChatOpenAI
 # You can also define custom tasks in tasks.py
 class CustomAgents:
     def __init__(self) -> None:
-        self.OpenAIGPT35 = ChatOpenAI(model='gpt-3.5-turbo', temperature=0.7)
-        # self.Ollama = Ollama(model="openhermes")
+        # self.OpenAIGPT35 = ChatOpenAI(model='gpt-3.5-turbo', temperature=0.7)
+        self.Ollama = Ollama(
+            model="internlm2", base_url="http://localhost:11434", temperature=0.1)
 
     def data_analyst(self):
         return Agent(
@@ -28,7 +29,7 @@ class CustomAgents:
                         between them."""),
             allow_delegation=False,
             verbose=True,
-            llm=self.OpenAIGPT35
+            llm=self.Ollama
         )
 
     def race_engineer(self):
