@@ -43,13 +43,13 @@ class CustomCrew:
         agents = CustomAgents()
         tasks = CustomTasks()
 
-        custom_agent_1 = agents.data_analyst()
+        data_analyst_agent = agents.data_analyst()
         custom_agent_2 = agents.race_engineer()
 
-        custom_task_1 = tasks.task_1_name(custom_agent_1, 'foo', 'var')
+        custom_task_1 = tasks.task_1_name(data_analyst_agent, 'foo', 'var')
         custom_task_2 = tasks.task_2_name(custom_agent_2)
 
-        crew = Crew(agents=[custom_agent_1, custom_agent_2], tasks=[
+        crew = Crew(agents=[data_analyst_agent, custom_agent_2], tasks=[
                     custom_task_1, custom_task_2], verbose=True)
 
         result = crew.kickoff()
