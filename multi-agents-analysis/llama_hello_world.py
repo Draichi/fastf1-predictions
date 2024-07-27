@@ -48,8 +48,7 @@ query_engine = index.as_query_engine()
 
 
 queries = [
-    "O que o autor fez enquanto estava crescendo?",
-    "Liste as principais características do autor"
+    "liste os 3 principais tópicos que o autor cobre nesse texto"
 ]
 
 for query in queries:
