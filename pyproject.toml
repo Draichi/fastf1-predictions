@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "fastf1-predictions"
+version = "0.1.0"
+description = "Using linear algebra (AI) with formula 1 data"
+authors = ["Lucas Draichi <lucasdraichi@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+llama-index = "^0.10.58"
+rich = "^13.7.1"
+fastf1 = "^3.4.0"
+seaborn = "^0.13.2"
+plotly = "^5.23.0"
+pandas = "^2.2.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
