@@ -16,6 +16,7 @@ seaborn = "^0.13.2"
 plotly = "^5.23.0"
 pandas = "^2.2.2"
 huggingface-hub = {extras = ["inference"], version = "^0.24.3"}
+python-dotenv = "^1.0.1"
 
 
 [build-system]
