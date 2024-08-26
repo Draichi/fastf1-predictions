@@ -1,0 +1,20 @@
+-- database: ./Spain_2024_FP1.db
+
+-- Use the ▷ button in the top right corner to run the entire file.
+
+SELECT * FROM russel;
+
+-- 1. Driver Performance Summary
+CREATE VIEW RusselAnalysisPerCompound AS
+SELECT 
+    r.Driver,
+    r.DriverNumber,
+    r.Compound,
+    COUNT(r.LapNumber) AS total_laps,
+    AVG(r.LapTimeSeconds) AS avg_lap_time,
+    MIN(r.LapTimeSeconds) AS best_lap_time,
+    AVG(r.SpeedI1) AS avg_speed_sector1,
+    AVG(r.SpeedI2) AS avg_speed_sector2,
+    AVG(r.SpeedFL) AS avg_speed_sector3
+FROM russel r
+GROUP BY r.Compound;
