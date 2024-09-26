@@ -42,15 +42,15 @@ class FastF1ToSQL:
                 event_date DATE,
                 event_name TEXT,
                 session_1_date_utc DATETIME,
-                session_1_name TEXT CHECK(session_1_name IN ('practice', 'qualify', 'race')),
+                session_1_name TEXT,
                 session_2_date_utc DATETIME,
-                session_2_name TEXT CHECK(session_2_name IN ('practice', 'qualify', 'race')),
+                session_2_name TEXT,
                 session_3_date_utc DATETIME,
-                session_3_name TEXT CHECK(session_3_name IN ('practice', 'qualify', 'race')),
+                session_3_name TEXT,
                 session_4_date_utc DATETIME,
-                session_4_name TEXT CHECK(session_4_name IN ('practice', 'qualify', 'race')),
+                session_4_name TEXT,
                 session_5_date_utc DATETIME,
-                session_5_name TEXT CHECK(session_5_name IN ('practice', 'qualify', 'race'))
+                session_5_name TEXT
             );
 
             CREATE TABLE IF NOT EXISTS Sessions (
@@ -163,17 +163,17 @@ class FastF1ToSQL:
             'round_number': session.event.RoundNumber,
             'country': session.event.Country,
             'location': session.event.Location,
-            'event_date': session.event.EventDate.date(),
+            'event_date': str(session.event.EventDate.date()),
             'event_name': session.event.EventName,
-            'session_1_date_utc': session.event.Session1DateUtc,
+            'session_1_date_utc': str(session.event.Session1DateUtc),
             'session_1_name': session.event.Session1.lower(),
-            'session_2_date_utc': session.event.Session2DateUtc,
+            'session_2_date_utc': str(session.event.Session2DateUtc),
             'session_2_name': session.event.Session2.lower(),
-            'session_3_date_utc': session.event.Session3DateUtc,
+            'session_3_date_utc': str(session.event.Session3DateUtc),
             'session_3_name': session.event.Session3.lower(),
-            'session_4_date_utc': session.event.Session4DateUtc,
+            'session_4_date_utc': str(session.event.Session4DateUtc),
             'session_4_name': session.event.Session4.lower(),
-            'session_5_date_utc': session.event.Session5DateUtc,
+            'session_5_date_utc': str(session.event.Session5DateUtc),
             'session_5_name': session.event.Session5.lower(),
         }
 
@@ -194,7 +194,7 @@ class FastF1ToSQL:
             'event_id': self.cursor.lastrowid,
             'track_id': self.get_or_create_track(session.event.Location, session.event.Country),
             'session_type': session.name,
-            'date': session.date,
+            'date': str(session.date),
         }
         columns = ', '.join(session_data.keys())
         placeholders = ':' + ', :'.join(session_data.keys())
@@ -252,9 +252,9 @@ class FastF1ToSQL:
                 'tyre_life_in_laps': lap['TyreLife'],
                 'is_fresh_tyre': lap['FreshTyre'],
                 'position': lap['Position'],
-                'lap_start_time_in_datetime': lap['lap_start_time_in_datetime'],
-                'pin_in_time_in_datetime': lap['pin_in_time_in_datetime'],
-                'pin_out_time_in_datetime': lap['pin_out_time_in_datetime'],
+                'lap_start_time_in_datetime': str(lap['lap_start_time_in_datetime']),
+                'pin_in_time_in_datetime': str(lap['pin_in_time_in_datetime']),
+                'pin_out_time_in_datetime': str(lap['pin_out_time_in_datetime']),
             }
             columns = ', '.join(lap_data.keys())
             placeholders = ':' + ', :'.join(lap_data.keys())
@@ -290,7 +290,7 @@ class FastF1ToSQL:
                     'y_position': sample['Y'],
                     'z_position': sample['Z'],
                     'is_off_track': sample['Status'] == 'OffTrack',
-                    'datetime': sample.name,
+                    'datetime': str(sample.name),
                 }
                 columns = ', '.join(telemetry_data.keys())
                 placeholders = ':' + ', :'.join(telemetry_data.keys())
@@ -318,7 +318,7 @@ class FastF1ToSQL:
                 'relative_air_humidity_in_percentage': sample['Humidity'],
                 'air_pressure_in_mbar': sample['Pressure'],
                 'is_raining': sample['Rainfall'],
-                'datetime': sample.name,
+                'datetime': str(sample.name),
             }
             columns = ', '.join(weather_sample.keys())
             placeholders = ':' + ', :'.join(weather_sample.keys())
