@@ -148,6 +148,9 @@ class FastF1ToSQL:
         self.insert_telemetry(session)
         self.insert_weather(session)
 
+        # Create data analysis views
+        self.create_data_analysis_views()
+
         # Commit changes and close connection
         self.conn.commit()
         self.conn.close()
@@ -268,6 +271,7 @@ class FastF1ToSQL:
         Args:
             session (Session): The FastF1 session object.
         """
+        print('> Inserting telemetry data...')
         telemetry_data_list = []
 
         for driver in session.drivers:
@@ -371,8 +375,135 @@ class FastF1ToSQL:
                             (self.cursor.lastrowid, driver, lap['LapNumber']))
         return self.cursor.fetchone()[0]
 
+    def create_data_analysis_views(self) -> None:
+        """Create data analysis views in the database."""
+        print('> Creating data analysis views...')
+        self.cursor.executescript('''
+            -- 1. Driver Performance Summary with Weather
+            CREATE VIEW IF NOT EXISTS DriverPerformanceSummaryWithWeather AS
+            SELECT 
+                l.driver_name,
+                e.event_name,
+                s.session_type,
+                t.track_name,
+                COUNT(l.lap_id) AS total_laps,
+                AVG(l.lap_time_in_seconds) AS avg_lap_time,
+                MIN(l.lap_time_in_seconds) AS best_lap_time,
+                AVG(l.sector_1_time_in_seconds) AS avg_sector1_time,
+                AVG(l.sector_2_time_in_seconds) AS avg_sector2_time,
+                AVG(l.sector_3_time_in_seconds) AS avg_sector3_time,
+                AVG(l.finish_line_speed_trap_in_km) AS avg_finish_line_speed,
+                COUNT(CASE WHEN l.is_personal_best THEN 1 END) AS personal_best_laps,
+                AVG(w.air_temperature_in_celsius) AS avg_air_temp,
+                AVG(w.track_temperature_in_celsius) AS avg_track_temp,
+                SUM(CASE WHEN w.is_raining THEN 1 ELSE 0 END) * 100.0 / COUNT(*) AS rain_percentage
+            FROM Laps l
+            JOIN Sessions s ON l.session_id = s.session_id
+            JOIN Tracks t ON s.track_id = t.track_id
+            JOIN Event e ON s.event_id = e.event_id
+            LEFT JOIN Weather w ON s.session_id = w.session_id 
+                AND l.lap_start_time_in_datetime BETWEEN w.datetime AND datetime(w.datetime, '+5 minutes')
+            GROUP BY l.driver_name, e.event_id, s.session_id;
+
+            -- 2. Tyre Performance Analysis with Weather
+            CREATE VIEW IF NOT EXISTS TyrePerformanceAnalysisWithWeather AS
+            SELECT 
+                l.driver_name,
+                e.event_name,
+                s.session_type,
+                t.track_name,
+                l.tyre_compound,
+                AVG(l.tyre_life_in_laps) AS avg_tyre_life,
+                AVG(l.lap_time_in_seconds) AS avg_lap_time,
+                AVG(l.longest_strait_speed_trap_in_km) AS avg_top_speed,
+                COUNT(CASE WHEN l.is_fresh_tyre THEN 1 END) AS fresh_tyre_laps,
+                COUNT(CASE WHEN NOT l.is_fresh_tyre THEN 1 END) AS used_tyre_laps,
+                AVG(w.track_temperature_in_celsius) AS avg_track_temp,
+                AVG(w.air_temperature_in_celsius) AS avg_air_temp
+            FROM Laps l
+            JOIN Sessions s ON l.session_id = s.session_id
+            JOIN Tracks t ON s.track_id = t.track_id
+            JOIN Event e ON s.event_id = e.event_id
+            LEFT JOIN Weather w ON s.session_id = w.session_id 
+                AND l.lap_start_time_in_datetime BETWEEN w.datetime AND datetime(w.datetime, '+5 minutes')
+            GROUP BY l.driver_name, e.event_id, s.session_id, l.tyre_compound;
+
+            -- 3. Weather Impact Analysis
+            CREATE VIEW IF NOT EXISTS WeatherImpactAnalysis AS
+            SELECT 
+                e.event_name,
+                s.session_type,
+                t.track_name,
+                AVG(w.air_temperature_in_celsius) AS avg_air_temp,
+                AVG(w.track_temperature_in_celsius) AS avg_track_temp,
+                AVG(w.relative_air_humidity_in_percentage) AS avg_humidity,
+                AVG(w.wind_speed_in_meters_per_seconds) AS avg_wind_speed,
+                SUM(CASE WHEN w.is_raining THEN 1 ELSE 0 END) * 100.0 / COUNT(*) AS rain_percentage,
+                AVG(l.lap_time_in_seconds) AS avg_lap_time,
+                MIN(l.lap_time_in_seconds) AS best_lap_time
+            FROM Weather w
+            JOIN Sessions s ON w.session_id = s.session_id
+            JOIN Tracks t ON s.track_id = t.track_id
+            JOIN Event e ON s.event_id = e.event_id
+            JOIN Laps l ON s.session_id = l.session_id
+                AND l.lap_start_time_in_datetime BETWEEN w.datetime AND datetime(w.datetime, '+5 minutes')
+            GROUP BY e.event_id, s.session_id;
+
+            -- 4. Event Performance Overview
+            CREATE VIEW IF NOT EXISTS EventPerformanceOverview AS
+            SELECT 
+                e.event_name,
+                e.country,
+                e.location,
+                s.session_type,
+                COUNT(DISTINCT l.driver_name) AS driver_count,
+                AVG(l.lap_time_in_seconds) AS avg_lap_time,
+                MIN(l.lap_time_in_seconds) AS best_lap_time,
+                MAX(l.finish_line_speed_trap_in_km) AS max_finish_line_speed,
+                AVG(w.air_temperature_in_celsius) AS avg_air_temp,
+                AVG(w.track_temperature_in_celsius) AS avg_track_temp,
+                SUM(CASE WHEN w.is_raining THEN 1 ELSE 0 END) * 100.0 / COUNT(*) AS rain_percentage
+            FROM Event e
+            JOIN Sessions s ON e.event_id = s.event_id
+            JOIN Laps l ON s.session_id = l.session_id
+            LEFT JOIN Weather w ON s.session_id = w.session_id 
+                AND l.lap_start_time_in_datetime BETWEEN w.datetime AND datetime(w.datetime, '+5 minutes')
+            GROUP BY e.event_id, s.session_id;
+
+            -- 5. Telemetry Analysis with Weather
+            CREATE VIEW IF NOT EXISTS TelemetryAnalysisWithWeather AS
+            SELECT 
+                l.lap_id,
+                l.driver_name,
+                e.event_name,
+                s.session_type,
+                t.track_name,
+                l.lap_number,
+                l.lap_time_in_seconds,
+                AVG(tel.speed_in_km) AS avg_speed,
+                MAX(tel.speed_in_km) AS max_speed,
+                AVG(tel.RPM) AS avg_RPM,
+                MAX(tel.RPM) AS max_RPM,
+                AVG(tel.throttle_input) AS avg_throttle,
+                SUM(CASE WHEN tel.is_brake_pressed THEN 1 ELSE 0 END) * 100.0 / COUNT(*) AS brake_percentage,
+                SUM(CASE WHEN tel.is_DRS_open THEN 1 ELSE 0 END) * 100.0 / COUNT(*) AS drs_usage_percentage,
+                SUM(CASE WHEN tel.is_off_track THEN 1 ELSE 0 END) * 100.0 / COUNT(*) AS off_track_percentage,
+                AVG(w.air_temperature_in_celsius) AS avg_air_temp,
+                AVG(w.track_temperature_in_celsius) AS avg_track_temp,
+                AVG(w.wind_speed_in_meters_per_seconds) AS avg_wind_speed
+            FROM Laps l
+            JOIN Sessions s ON l.session_id = s.session_id
+            JOIN Tracks t ON s.track_id = t.track_id
+            JOIN Event e ON s.event_id = e.event_id
+            JOIN Telemetry tel ON l.lap_id = tel.lap_id
+            LEFT JOIN Weather w ON s.session_id = w.session_id 
+                AND tel.datetime BETWEEN w.datetime AND datetime(w.datetime, '+5 minutes')
+            GROUP BY l.lap_id;
+        ''')
+        self.conn.commit()
+
 
 # Usage example:
 session = fastf1.get_session(2023, 'Bahrain', 'Q')
-converter = FastF1ToSQL('f1_data.db')
+converter = FastF1ToSQL('Bahrain_2023_Q.db')
 converter.process_session(session)
