@@ -15,7 +15,7 @@ class FastF1ToSQL:
             db_path (str): Path to the SQLite database file.
         """
         self.db_path = db_path
-        self.conn = sqlite3.connect(db_path)
+        self.conn = sqlite3.connect(db_path, timeout=20)
         self.cursor = self.conn.cursor()
         self.create_tables()
 
@@ -58,7 +58,7 @@ class FastF1ToSQL:
                 event_id INTEGER,
                 track_id INTEGER,
                 session_type TEXT NOT NULL,
-                date TEXT NOT NULL,
+                date DATETIME NOT NULL,
                 FOREIGN KEY (event_id) REFERENCES Event(event_id),
                 FOREIGN KEY (track_id) REFERENCES Tracks(track_id)
             );
@@ -109,7 +109,7 @@ class FastF1ToSQL:
                 speed_in_km REAL,
                 RPM INTEGER,
                 gear_number INTEGER,
-                throttle_input REAL CHECK (throttle_input BETWEEN 0 AND 100),
+                throttle_input REAL,
                 is_brake_pressed BOOLEAN,
                 is_DRS_open BOOLEAN,
                 x_position REAL,
@@ -268,34 +268,37 @@ class FastF1ToSQL:
         Args:
             session (Session): The FastF1 session object.
         """
+        telemetry_data_list = []
+
         for driver in session.drivers:
-            car_data = session.car_data[driver].copy()
-            pos_data = session.pos_data[driver].copy()
+            laps_per_driver = session.laps.pick_driver(driver)
 
-            telemetry = car_data.merge(
-                pos_data, left_index=True, right_index=True, suffixes=('', '_pos'))
-            telemetry['lap_id'] = self.get_lap_id(
-                session, driver, telemetry.index)
+            for _, lap in laps_per_driver.iterrows():
+                lap_number = lap['LapNumber']
+                telemetry = lap.get_telemetry()
 
-            for _, sample in telemetry.iterrows():
-                telemetry_data: dict[str, Any] = {
-                    'lap_id': sample['lap_id'],
-                    'speed_in_km': sample['Speed'],
-                    'RPM': sample['RPM'],
-                    'gear_number': sample['nGear'],
-                    'throttle_input': sample['Throttle'],
-                    'is_brake_pressed': sample['Brake'],
-                    'is_DRS_open': sample['DRS'],
-                    'x_position': sample['X'],
-                    'y_position': sample['Y'],
-                    'z_position': sample['Z'],
-                    'is_off_track': sample['Status'] == 'OffTrack',
-                    'datetime': str(sample.name),
-                }
-                columns = ', '.join(telemetry_data.keys())
-                placeholders = ':' + ', :'.join(telemetry_data.keys())
-                query = f"INSERT INTO Telemetry ({columns}) VALUES ({placeholders})"
-                self.cursor.execute(query, telemetry_data)
+                for _, sample in telemetry.iterrows():
+                    telemetry_data: dict[str, Any] = {
+                        'lap_id': lap_number,
+                        'speed_in_km': sample['Speed'],
+                        'RPM': sample['RPM'],
+                        'gear_number': sample['nGear'],
+                        'throttle_input': sample['Throttle'],
+                        'is_brake_pressed': sample['Brake'],
+                        'is_DRS_open': sample['DRS'],
+                        'x_position': round(sample['X'], 2),
+                        'y_position': round(sample['Y'], 2),
+                        'z_position': round(sample['Z'], 2),
+                        'is_off_track': sample['Status'] == 'OffTrack',
+                        'datetime': str(sample.name),
+                    }
+                    telemetry_data_list.append(telemetry_data)
+
+        if telemetry_data_list:
+            columns = ', '.join(telemetry_data_list[0].keys())
+            placeholders = ':' + ', :'.join(telemetry_data_list[0].keys())
+            query = f"INSERT INTO Telemetry ({columns}) VALUES ({placeholders})"
+            self.cursor.executemany(query, telemetry_data_list)
 
     def insert_weather(self, session: Session) -> None:
         """
