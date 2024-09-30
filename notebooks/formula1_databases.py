@@ -163,7 +163,7 @@ class FastF1ToSQL:
             session (Session): The FastF1 session object.
         """
         event_data: dict[str, Any] = {
-            'round_number': session.event.RoundNumber,
+            'round_number': int(session.event.RoundNumber),
             'country': session.event.Country,
             'location': session.event.Location,
             'event_date': str(session.event.EventDate.date()),
