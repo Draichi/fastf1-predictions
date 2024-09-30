@@ -320,6 +320,9 @@ class FastF1ToSQL:
         # Assuming this is called right after insert_session
         weather_data['session_id'] = self.cursor.lastrowid
 
+        weather_data['datetime'] = self._session_start_date + \
+            weather_data['Time']
+
         for _, sample in weather_data.iterrows():
             weather_sample: dict[str, Any] = {
                 'session_id': sample['session_id'],
@@ -330,7 +333,7 @@ class FastF1ToSQL:
                 'relative_air_humidity_in_percentage': sample['Humidity'],
                 'air_pressure_in_mbar': sample['Pressure'],
                 'is_raining': sample['Rainfall'],
-                'datetime': str(sample.name),
+                'datetime': str(sample['datetime']),
             }
             columns = ', '.join(weather_sample.keys())
             placeholders = ':' + ', :'.join(weather_sample.keys())
