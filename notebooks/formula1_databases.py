@@ -141,7 +141,7 @@ class FastF1ToSQL:
         session.load()
 
         # Save session start date
-        self._session_start_date = session.session_info['StartDate']
+        self._session_start_date = session.t0_date
 
         # Insert data into tables
         self.insert_event(session)
@@ -237,10 +237,10 @@ class FastF1ToSQL:
         laps_df['session_id'] = self.cursor.lastrowid
         laps_df['lap_start_time_in_datetime'] = pd.to_datetime(
             laps_df['LapStartDate'])
-        laps_df['pin_in_time_in_datetime'] = pd.to_datetime(
-            laps_df['PitInTime'], unit='ns')
-        laps_df['pin_out_time_in_datetime'] = pd.to_datetime(
-            laps_df['PitOutTime'], unit='ns')
+        laps_df['pin_in_time_in_datetime'] = self._session_start_date + \
+            laps_df['PitInTime']
+        laps_df['pin_out_time_in_datetime'] = self._session_start_date + \
+            laps_df['PitOutTime']
 
         for _, lap in laps_df.iterrows():
             lap_data: dict[str, Any] = {
