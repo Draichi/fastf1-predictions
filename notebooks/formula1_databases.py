@@ -206,6 +206,7 @@ class FastF1ToSQL:
         placeholders = ':' + ', :'.join(session_data.keys())
         query = f"INSERT INTO Sessions ({columns}) VALUES ({placeholders})"
         self.cursor.execute(query, session_data)
+        self._session_id = self.cursor.lastrowid
 
     def insert_drivers(self, session: Session) -> None:
         """
@@ -233,8 +234,7 @@ class FastF1ToSQL:
             session (Session): The FastF1 session object.
         """
         laps_df = session.laps.copy()
-        # Assuming this is called right after insert_session
-        laps_df['session_id'] = self.cursor.lastrowid
+        laps_df['session_id'] = self._session_id
         laps_df['lap_start_time_in_datetime'] = pd.to_datetime(
             laps_df['LapStartDate'])
         laps_df['pin_in_time_in_datetime'] = self._session_start_date + \
@@ -317,8 +317,7 @@ class FastF1ToSQL:
             session (Session): The FastF1 session containing weather data.
         """
         weather_data = cast(pd.DataFrame, session.weather_data)
-        # Assuming this is called right after insert_session
-        weather_data['session_id'] = self.cursor.lastrowid
+        weather_data['session_id'] = self._session_id
 
         weather_data['datetime'] = self._session_start_date + \
             weather_data['Time']
@@ -376,11 +375,11 @@ class FastF1ToSQL:
         laps = session.laps.pick_driver(driver)
         lap = laps.loc[laps['LapStartTime'] <= time].iloc[-1]
 
-        if self.cursor.lastrowid is None:
+        if self._session_id is None:
             raise ValueError("No ID was generated")
 
         self.cursor.execute("SELECT lap_id FROM Laps WHERE session_id = ? AND driver_name = ? AND lap_number = ?",
-                            (self.cursor.lastrowid, driver, lap['LapNumber']))
+                            (self._session_id, driver, lap['LapNumber']))
         return self.cursor.fetchone()[0]
 
     def create_data_analysis_views(self) -> None:
@@ -410,7 +409,7 @@ class FastF1ToSQL:
             JOIN Tracks t ON s.track_id = t.track_id
             JOIN Event e ON s.event_id = e.event_id
             LEFT JOIN Weather w ON s.session_id = w.session_id 
-                AND l.lap_start_time_in_datetime BETWEEN w.datetime AND datetime(w.datetime, '+5 minutes')
+                AND l.lap_start_time_in_datetime BETWEEN w.datetime AND datetime(w.datetime, '+1 minutes')
             GROUP BY l.driver_name, e.event_id, s.session_id;
 
             -- 2. Tyre Performance Analysis with Weather
@@ -433,7 +432,7 @@ class FastF1ToSQL:
             JOIN Tracks t ON s.track_id = t.track_id
             JOIN Event e ON s.event_id = e.event_id
             LEFT JOIN Weather w ON s.session_id = w.session_id 
-                AND l.lap_start_time_in_datetime BETWEEN w.datetime AND datetime(w.datetime, '+5 minutes')
+                AND l.lap_start_time_in_datetime BETWEEN w.datetime AND datetime(w.datetime, '+1 minutes')
             GROUP BY l.driver_name, e.event_id, s.session_id, l.tyre_compound;
 
             -- 3. Weather Impact Analysis
@@ -454,7 +453,7 @@ class FastF1ToSQL:
             JOIN Tracks t ON s.track_id = t.track_id
             JOIN Event e ON s.event_id = e.event_id
             JOIN Laps l ON s.session_id = l.session_id
-                AND l.lap_start_time_in_datetime BETWEEN w.datetime AND datetime(w.datetime, '+5 minutes')
+                AND l.lap_start_time_in_datetime BETWEEN w.datetime AND datetime(w.datetime, '+1 minutes')
             GROUP BY e.event_id, s.session_id;
 
             -- 4. Event Performance Overview
@@ -475,7 +474,7 @@ class FastF1ToSQL:
             JOIN Sessions s ON e.event_id = s.event_id
             JOIN Laps l ON s.session_id = l.session_id
             LEFT JOIN Weather w ON s.session_id = w.session_id 
-                AND l.lap_start_time_in_datetime BETWEEN w.datetime AND datetime(w.datetime, '+5 minutes')
+                AND l.lap_start_time_in_datetime BETWEEN w.datetime AND datetime(w.datetime, '+1 minutes')
             GROUP BY e.event_id, s.session_id;
 
             -- 5. Telemetry Analysis with Weather
@@ -505,7 +504,7 @@ class FastF1ToSQL:
             JOIN Event e ON s.event_id = e.event_id
             JOIN Telemetry tel ON l.lap_id = tel.lap_id
             LEFT JOIN Weather w ON s.session_id = w.session_id 
-                AND tel.datetime BETWEEN w.datetime AND datetime(w.datetime, '+5 minutes')
+                AND tel.datetime BETWEEN w.datetime AND datetime(w.datetime, '+1 minutes')
             GROUP BY l.lap_id;
         ''')
         self.conn.commit()
