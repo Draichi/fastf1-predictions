@@ -140,6 +140,9 @@ class FastF1ToSQL:
         # Load session data
         session.load()
 
+        # Save session start date
+        self._session_start_date = session.session_info['StartDate']
+
         # Insert data into tables
         self.insert_event(session)
         self.insert_session(session)
@@ -280,6 +283,8 @@ class FastF1ToSQL:
             for _, lap in laps_per_driver.iterrows():
                 lap_number = lap['LapNumber']
                 telemetry = lap.get_telemetry()
+                telemetry['datetime'] = self._session_start_date + \
+                    telemetry['Time']
 
                 for _, sample in telemetry.iterrows():
                     telemetry_data: dict[str, Any] = {
@@ -294,7 +299,7 @@ class FastF1ToSQL:
                         'y_position': round(sample['Y'], 2),
                         'z_position': round(sample['Z'], 2),
                         'is_off_track': sample['Status'] == 'OffTrack',
-                        'datetime': str(sample.name),
+                        'datetime': str(sample['datetime']),
                     }
                     telemetry_data_list.append(telemetry_data)
 
