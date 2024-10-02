@@ -106,6 +106,7 @@ class FastF1ToSQL:
             CREATE TABLE IF NOT EXISTS Telemetry (
                 telemetry_id INTEGER PRIMARY KEY,
                 lap_id INTEGER,
+                driver_name TEXT NOT NULL,
                 speed_in_km REAL,
                 RPM INTEGER,
                 gear_number INTEGER,
@@ -117,7 +118,8 @@ class FastF1ToSQL:
                 z_position REAL,
                 is_off_track BOOLEAN,
                 datetime DATETIME,
-                FOREIGN KEY (lap_id) REFERENCES Laps(lap_id)
+                FOREIGN KEY (lap_id) REFERENCES Laps(lap_id),
+                FOREIGN KEY (driver_name) REFERENCES Drivers(driver_name)
             );
 
             CREATE INDEX IF NOT EXISTS idx_laps_driver_name ON Laps(driver_name);
@@ -187,6 +189,7 @@ class FastF1ToSQL:
         placeholders = ', '.join(['?' for _ in event_data])
         query = f"INSERT OR REPLACE INTO Event ({columns}) VALUES ({placeholders})"
         self.cursor.execute(query, list(event_data.values()))
+        self._event_id = self.cursor.lastrowid
 
     def insert_session(self, session: Session) -> None:
         """
@@ -197,7 +200,7 @@ class FastF1ToSQL:
         """
         session_data: dict[str, Any] = {
             # Assuming this is called right after insert_event
-            'event_id': self.cursor.lastrowid,
+            'event_id': self._event_id,
             'track_id': self.get_or_create_track(session.event.Location, session.event.Country),
             'session_type': session.name,
             'date': str(session.date),
@@ -266,6 +269,7 @@ class FastF1ToSQL:
             placeholders = ':' + ', :'.join(lap_data.keys())
             query = f"INSERT INTO Laps ({columns}) VALUES ({placeholders})"
             self.cursor.execute(query, lap_data)
+        self.conn.commit()
 
     def insert_telemetry(self, session: Session) -> None:
         """
@@ -279,16 +283,31 @@ class FastF1ToSQL:
 
         for driver in session.drivers:
             laps_per_driver = session.laps.pick_driver(driver)
+            driver_name = session.get_driver(driver)['Abbreviation']
+            console.print(f"> Processing telemetry for driver: {driver_name}")
 
             for _, lap in laps_per_driver.iterrows():
                 lap_number = lap['LapNumber']
                 telemetry = lap.get_telemetry()
                 telemetry['datetime'] = self._session_start_date + \
-                    telemetry['Time']
+                    telemetry['SessionTime']
 
-                for _, sample in telemetry.iterrows():
+                # Sort telemetry data by datetime
+                telemetry_sorted = telemetry.sort_values('datetime')
+
+                # Floor the 'datetime' to the specified decimal of a second
+                telemetry_sorted['floored_datetime'] = telemetry_sorted['datetime'].apply(
+                    lambda x: x.floor(f'{0.1}s')
+                )
+
+                # Keep only the first occurrence for each floored_datetime
+                telemetry_unique = telemetry_sorted.groupby(
+                    'floored_datetime', as_index=False).first()
+
+                for _, sample in telemetry_unique.iterrows():
                     telemetry_data: dict[str, Any] = {
-                        'lap_id': lap_number,
+                        'lap_id': self.__get_lap_id(session, driver_name, sample['datetime']),
+                        'driver_name': driver_name,
                         'speed_in_km': sample['Speed'],
                         'RPM': sample['RPM'],
                         'gear_number': sample['nGear'],
@@ -360,7 +379,7 @@ class FastF1ToSQL:
                 "INSERT INTO Tracks (track_name, country) VALUES (?, ?)", (track_name, country))
             return self.cursor.lastrowid or 0
 
-    def get_lap_id(self, session: Session, driver: str, time: datetime) -> int:
+    def __get_lap_id(self, session: Session, driver_name: str, time: datetime) -> int:
         """
         Get the lap_id for a given driver and time.
 
@@ -372,14 +391,27 @@ class FastF1ToSQL:
         Returns:
             int: The lap_id of the found lap.
         """
-        laps = session.laps.pick_driver(driver)
-        lap = laps.loc[laps['LapStartTime'] <= time].iloc[-1]
+
+        laps = session.laps.pick_driver(driver_name).copy()
+        # Convert LapStartDate to pd.Timestamp for proper comparison
+        laps['LapStartTime'] = pd.to_datetime(laps['LapStartDate'])
+        # Find the lap where the given time falls between LapStartTime and LapStartTime of the next lap
+        matching_laps = laps.loc[(laps['LapStartTime'] <= time) & (
+            laps['LapStartTime'].shift(-1) > time)]
+
+        if matching_laps.empty:
+            # Handle the case when no matching lap is found
+            print(
+                f"No matching lap found for driver {driver_name} at time {time}")
+            return 999  # or some default value, or raise a custom exception
+
+        lap = matching_laps.iloc[0]
 
         if self._session_id is None:
             raise ValueError("No ID was generated")
 
         self.cursor.execute("SELECT lap_id FROM Laps WHERE session_id = ? AND driver_name = ? AND lap_number = ?",
-                            (self._session_id, driver, lap['LapNumber']))
+                            (self._session_id, driver_name, lap['LapNumber']))
         return self.cursor.fetchone()[0]
 
     def create_data_analysis_views(self) -> None:
@@ -477,8 +509,13 @@ class FastF1ToSQL:
                 AND l.lap_start_time_in_datetime BETWEEN w.datetime AND datetime(w.datetime, '+1 minutes')
             GROUP BY e.event_id, s.session_id;
 
-            -- 5. Telemetry Analysis with Weather
+            -- 5. Telemetry Analysis with Weather (Optimized)
             CREATE VIEW IF NOT EXISTS TelemetryAnalysisWithWeather AS
+            WITH SampledTelemetry AS (
+                SELECT *,
+                       ROW_NUMBER() OVER (PARTITION BY lap_id ORDER BY RANDOM()) as rn
+                FROM Telemetry
+            )
             SELECT 
                 l.lap_id,
                 l.driver_name,
@@ -502,7 +539,7 @@ class FastF1ToSQL:
             JOIN Sessions s ON l.session_id = s.session_id
             JOIN Tracks t ON s.track_id = t.track_id
             JOIN Event e ON s.event_id = e.event_id
-            JOIN Telemetry tel ON l.lap_id = tel.lap_id
+            JOIN SampledTelemetry tel ON l.lap_id = tel.lap_id AND tel.rn <= 100
             LEFT JOIN Weather w ON s.session_id = w.session_id 
                 AND tel.datetime BETWEEN w.datetime AND datetime(w.datetime, '+1 minutes')
             GROUP BY l.lap_id;
