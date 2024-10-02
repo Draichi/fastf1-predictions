@@ -4,9 +4,16 @@ import pandas as pd
 from datetime import datetime
 from fastf1.core import Session
 import fastf1
+from rich.console import Console
+
+console = Console(style="chartreuse1 on grey7")
 
 
 class FastF1ToSQL:
+    """
+    A class to convert FastF1 data into a SQLite database.
+    """
+
     def __init__(self, db_path: str) -> None:
         """
         Initialize the FastF1ToSQL class.
@@ -17,9 +24,9 @@ class FastF1ToSQL:
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path, timeout=20)
         self.cursor = self.conn.cursor()
-        self.create_tables()
+        self.__create_tables()
 
-    def create_tables(self) -> None:
+    def __create_tables(self) -> None:
         """Create all necessary tables and indexes if they don't exist."""
         self.cursor.executescript('''
             CREATE TABLE IF NOT EXISTS Drivers (
@@ -139,6 +146,8 @@ class FastF1ToSQL:
         Args:
             session (Session): The session to process.
         """
+        console.print(
+            f"> Processing session: {session.event.EventName} - {session.name}. This may take a while...")
         # Load session data
         session.load()
 
@@ -154,7 +163,7 @@ class FastF1ToSQL:
         self.insert_weather(session)
 
         # Create data analysis views
-        self.create_data_analysis_views()
+        self.__create_data_analysis_views()
 
         # Commit changes and close connection
         self.conn.commit()
@@ -236,6 +245,7 @@ class FastF1ToSQL:
         Args:
             session (Session): The FastF1 session object.
         """
+        console.print("> Inserting laps data...")
         laps_df = session.laps.copy()
         laps_df['session_id'] = self._session_id
         laps_df['lap_start_time_in_datetime'] = pd.to_datetime(
@@ -278,7 +288,7 @@ class FastF1ToSQL:
         Args:
             session (Session): The FastF1 session object.
         """
-        print('> Inserting telemetry data...')
+        console.print('> Inserting telemetry data...')
         telemetry_data_list = []
 
         for driver in session.drivers:
@@ -288,6 +298,7 @@ class FastF1ToSQL:
 
             for _, lap in laps_per_driver.iterrows():
                 lap_number = lap['LapNumber']
+                console.print(f"> Processing telemetry for lap: {lap_number}")
                 telemetry = lap.get_telemetry()
                 telemetry['datetime'] = self._session_start_date + \
                     telemetry['SessionTime']
@@ -414,9 +425,9 @@ class FastF1ToSQL:
                             (self._session_id, driver_name, lap['LapNumber']))
         return self.cursor.fetchone()[0]
 
-    def create_data_analysis_views(self) -> None:
+    def __create_data_analysis_views(self) -> None:
         """Create data analysis views in the database."""
-        print('> Creating data analysis views...')
+        console.print('> Creating data analysis views...')
         self.cursor.executescript('''
             -- 1. Driver Performance Summary with Weather
             CREATE VIEW IF NOT EXISTS DriverPerformanceSummaryWithWeather AS
