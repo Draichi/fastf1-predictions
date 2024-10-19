@@ -425,6 +425,26 @@ class FastF1ToSQL:
                             (self._session_id, driver_name, lap['LapNumber']))
         return self.cursor.fetchone()[0]
 
+    def __update_laps(self) -> None:
+        """Update the laps table with the new data."""
+        console.print('> Updating laps table...')
+        self.cursor.execute('''
+            UPDATE Laps
+            SET 
+                pin_in_time_in_datetime = CASE 
+                    WHEN pin_in_time_in_datetime = 'NaT' THEN NULL 
+                    ELSE pin_in_time_in_datetime 
+                END,
+                pin_out_time_in_datetime = CASE 
+                    WHEN pin_out_time_in_datetime = 'NaT' THEN NULL 
+                    ELSE pin_out_time_in_datetime 
+                END
+            WHERE 
+                pin_in_time_in_datetime = 'NaT' 
+                OR pin_out_time_in_datetime = 'NaT';
+
+        ''')
+
     def __create_data_analysis_views(self) -> None:
         """Create data analysis views in the database."""
         console.print('> Creating data analysis views...')
