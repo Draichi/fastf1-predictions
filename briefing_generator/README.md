@@ -21,32 +21,35 @@ This project demonstrates a text-to-SQL query generator for Formula 1 data using
 
 ## Installation
 
-1. Clone the repository:   ```
-   git clone https://github.com/your-username/f1-text-to-sql.git
-   cd f1-text-to-sql   ```
+1. Clone the repository: `git clone https://github.com/your-username/f1-text-to-sql.git
+cd f1-text-to-sql  `
 
-2. Create a new Conda environment:   ```
-   conda create -n f1-text-to-sql python=3.11
-   conda activate f1-text-to-sql   ```
+2. Create a new Conda environment: `conda create -n f1-text-to-sql python=3.11
+conda activate f1-text-to-sql  `
 
-3. Install Poetry:   ```
-   curl -sSL https://install.python-poetry.org | python3 -   ```
+3. Install Poetry: `curl -sSL https://install.python-poetry.org | python3 -  `
 
-4. Install project dependencies using Poetry:   ```
-   poetry install   ```
+4. Install project dependencies using Poetry: `poetry install .`
 
-5. Create a `.env` file in the project root and add your API keys:   ```
-   OPENAI_API_KEY=your_openai_api_key_here
-   LANGCHAIN_API_KEY=your_langchain_api_key_here   ```
+5. Create a `.env` file in the project root and add your API keys: `OPENAI_API_KEY=your_openai_api_key_here
+LANGCHAIN_API_KEY=your_langchain_api_key_here  `
 
 ## Usage
 
 1. Ensure you have the F1 SQLite database file (`Bahrain_2023_Q.db`) in the `db` directory.
 
-2. Run Jupyter Notebook:   ```
-   poetry run jupyter notebook   ```
+2. Run Jupyter Notebook: `poetry run jupyter notebook  `
 
 3. Open the `langchain_text2SQL.ipynb` notebook and run the cells to interact with the F1 data using natural language queries.
+
+### Gradio Interface
+
+```
+poetry run python gradio_sql_agent.py
+
+# dev mode
+pymon gradio_sql_agent.py
+```
 
 ## Project Structure
 
