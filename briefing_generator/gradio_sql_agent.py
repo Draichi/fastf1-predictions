@@ -8,8 +8,11 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.prebuilt import create_react_agent
 from langchain.schema import AIMessage
 from rich.console import Console
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 console = Console(style="chartreuse1 on grey7")
+
+os.environ['LANGCHAIN_PROJECT'] = 'briefing-generator'
 
 # Load environment variables
 load_dotenv()
@@ -23,7 +26,14 @@ if not os.environ.get("OPENAI_API_KEY"):
 db = SQLDatabase.from_uri("sqlite:///../db/Bahrain_2023_Q.db")
 
 # Initialize LLM
-llm = ChatOpenAI(model="gpt-4-0125-preview")
+# llm = ChatOpenAI(model="gpt-4-0125-preview")
+llm = ChatGoogleGenerativeAI(
+    model="gemini-1.5-flash",
+    temperature=0.7,
+    max_tokens=None,
+    timeout=None,
+    max_retries=2,
+)
 
 # Create SQL toolkit and tools
 toolkit = SQLDatabaseToolkit(db=db, llm=llm)
@@ -53,76 +63,16 @@ system_message = SystemMessage(content=system)
 agent = create_react_agent(llm, tools, state_modifier=system_message)
 
 
-class ChatbotState:
-    def __init__(self):
-        self.conversation_history = []
-
-    def add_message(self, role, content):
-        self.conversation_history.append((role, content))
-
-    def get_conversation_history(self):
-        return self.conversation_history
-
-    def clear_history(self):
-        self.conversation_history = []
-
-
-chatbot_state = ChatbotState()
-
-
-def process_message(user_input):
-    chatbot_state.add_message("Human", user_input)
-
-    response = agent.invoke({"messages": [HumanMessage(content=user_input)]})
+def predict(message, _):
+    response = agent.invoke({"messages": [HumanMessage(content=message)]})
     console.print("\nresponse:")
     console.print(response)
 
-    ai_message = next(
-        (msg for msg in response["messages"] if isinstance(msg, AIMessage)), None)
-    if ai_message:
-        ai_response = ai_message.content
-        console.print("\nai_response:")
-        console.print(ai_response)
-        chatbot_state.add_message("AI", ai_response)
-        return ai_response
-    else:
-        error_message = "Sorry, I couldn't generate a response. Please try again."
-        chatbot_state.add_message("AI", error_message)
-        return error_message
+    for msg in reversed(response["messages"]):
+        if isinstance(msg, AIMessage):
+            console.print("\nmsg:")
+            console.print(msg)
+            return msg.content
 
 
-def chat_interface(user_input):
-    ai_response = process_message(user_input)
-    return chatbot_state.get_conversation_history()
-
-
-def clear_conversation():
-    chatbot_state.clear_history()
-    return chatbot_state.get_conversation_history()
-
-
-def predict(message, history):
-    history_langchain_format = []
-    for msg in history:
-        if msg['role'] == "user":
-            history_langchain_format.append(
-                HumanMessage(content=msg['content']))
-        elif msg['role'] == "assistant":
-            history_langchain_format.append(AIMessage(content=msg['content']))
-    history_langchain_format.append(HumanMessage(content=message))
-    gpt_response = llm(history_langchain_format)
-    console.print("\ngpt_response:")
-    console.print(gpt_response)
-    return gpt_response.content
-
-
-# Create Gradio interface
-iface = gr.ChatInterface(
-    fn=predict,
-    type="messages",
-    title="F1 Database SQL Agent",
-    description="Ask questions about the F1 Bahrain 2023 Qualifying database.",
-    theme="default",
-)
-
-iface.launch()
+gr.ChatInterface(predict, type="messages").launch()
