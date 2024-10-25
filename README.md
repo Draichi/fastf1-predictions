@@ -1,3 +1,16 @@
+---
+title: Formula1 Race Debriefing
+emoji: 🔥
+colorFrom: gray
+colorTo: gray
+sdk: gradio
+sdk_version: 5.3.0
+app_file: app.py
+pinned: false
+license: mit
+short_description: Chat with the telemetry databases from Formula 1 races
+---
+
 # FastF1 Predictions
 
 ## Overview
