@@ -39,6 +39,30 @@ llm = ChatGoogleGenerativeAI(
 toolkit = SQLDatabaseToolkit(db=db, llm=llm)
 tools = toolkit.get_tools()
 
+
+def query_as_list(db, query):
+    res = db.run(query)
+    res = [el for sub in ast.literal_eval(res) for el in sub if el]
+    res = [re.sub(r"\b\d+\b", "", string).strip() for string in res]
+    return list(set(res))
+
+
+drivers = query_as_list(db, "SELECT driver_name FROM Drivers")
+
+# todo: Use here the queries Views saved in the db as a retriever named "search_telemetry_data"
+
+vector_db = FAISS.from_texts(drivers, OpenAIEmbeddings())
+retriever = vector_db.as_retriever(search_kwargs={"k": 5})
+description = """Use to look up values to filter on. Input is an approximate spelling of the proper noun, output is \
+valid proper nouns. Use the noun most similar to the search."""
+
+retriever_tool = create_retriever_tool(
+    retriever,
+    name="search_proper_nouns",
+    description=description,
+)
+tools.append(retriever_tool)
+
 # Define system message
 system = """You are an agent designed to interact with a SQL database.
 Given an input question, create a syntactically correct SQLite query to run, then look at the results of the query and return the answer.
