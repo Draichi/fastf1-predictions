@@ -1,11 +1,13 @@
 import os
 import gradio as gr
 from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
 from langchain_community.utilities import SQLDatabase
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
 from langgraph.prebuilt import create_react_agent
 from langchain.schema import AIMessage
+from rich.console import Console
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents.agent_toolkits import create_retriever_tool
 from langchain_community.vectorstores import FAISS
@@ -14,12 +16,23 @@ import ast
 from gradio import ChatMessage
 import re
 
+console = Console(style="chartreuse1 on grey7")
+
 os.environ['LANGCHAIN_PROJECT'] = 'gradio-test'
 
+# Load environment variables
 load_dotenv()
 
+# # Ensure required environment variables are set
+# if not os.environ.get("OPENAI_API_KEY"):
+#     raise EnvironmentError(
+#         "OPENAI_API_KEY not found in environment variables.")
+
+# Initialize database connection
 db = SQLDatabase.from_uri("sqlite:///../db/Bahrain_2023_Q.db")
 
+# Initialize LLM
+# llm = ChatOpenAI(model="gpt-4-0125-preview")
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash",
     temperature=0.7,
@@ -92,8 +105,12 @@ async def interact_with_agent(message, history):
                         role="assistant", content=msg.content, metadata={"title": f"🛠️ Used tool {msg.name}"}))
                     yield history
 
+        console.print(f"\nchunk:")
+        console.print(chunk)
         if "agent" in chunk:
             messages = chunk["agent"]["messages"]
+            console.print(f"\nmessages:")
+            console.print(messages)
             for msg in messages:
                 if isinstance(msg, AIMessage):
                     if msg.content:

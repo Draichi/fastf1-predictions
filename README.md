@@ -17,7 +17,7 @@ short_description: Chat with the telemetry databases from Formula 1 races
 
 FastF1 Predictions is an innovative project aimed at predicting lap times in Formula 1 using telemetry data. Accurate lap time predictions are crucial in Formula 1 as they can influence strategic decisions during races, qualifying, and practice sessions. By leveraging advanced machine learning algorithms, FastF1 Predictions seeks to provide precise and reliable predictions to enhance the competitive edge of teams and drivers.
 
-![image](./notebooks/images/sector-time.png)
+![image](./assets/sector-time.png)
 
 ## Purpose
 
@@ -28,7 +28,7 @@ The primary goal of FastF1 Predictions is to utilize historical race data and te
 Currently, the project includes:
 
 - **notebooks/**: A directory containing Jupyter notebooks.
-  - **[sector-3-time-prediction.ipynb](./notebooks/sector-3-time-prediction.ipynb)**: A demonstration notebook showcasing how to use the algorithms to predict lap times based on historical telemetry data. There's also a [Kaggle notebook](https://www.kaggle.com/code/lucasdraichi/hamilton-lap-time-prediction)
+  - **[sector-3-time-prediction.ipynb](./regression-models/sector-3-time-prediction.ipynb)**: A demonstration notebook showcasing how to use the algorithms to predict lap times based on historical telemetry data. There's also a [Kaggle notebook](https://www.kaggle.com/code/lucasdraichi/hamilton-lap-time-prediction)
 
 Future updates will expand the repository with more resources, including additional notebooks, scripts, and enhanced functionalities.
 
