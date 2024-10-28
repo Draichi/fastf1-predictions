@@ -1,0 +1,105 @@
+CREATE TABLE Drivers (
+    driver_id INTEGER PRIMARY KEY,
+    driver_name TEXT NOT NULL,
+    team TEXT NOT NULL
+);
+
+CREATE TABLE Tracks (
+    track_id INTEGER PRIMARY KEY,
+    track_name TEXT NOT NULL,
+    country TEXT NOT NULL
+);
+
+CREATE TABLE Event (
+    event_id INTEGER PRIMARY KEY,
+    round_number INTEGER,
+    country TEXT,
+    location TEXT,
+    event_date DATE,
+    event_name TEXT,
+    session_1_date_utc DATETIME,
+    session_1_name TEXT CHECK(session_1_name IN ('practice', 'qualify', 'race')),
+    session_2_date_utc DATETIME,
+    session_2_name TEXT CHECK(session_2_name IN ('practice', 'qualify', 'race')),
+    session_3_date_utc DATETIME,
+    session_3_name TEXT CHECK(session_3_name IN ('practice', 'qualify', 'race')),
+    session_4_date_utc DATETIME,
+    session_4_name TEXT CHECK(session_4_name IN ('practice', 'qualify', 'race')),
+    session_5_date_utc DATETIME,
+    session_5_name TEXT CHECK(session_5_name IN ('practice', 'qualify', 'race'))
+);
+
+CREATE TABLE Sessions (
+    session_id INTEGER PRIMARY KEY,
+    event_id INTEGER,
+    track_id INTEGER,
+    session_type TEXT NOT NULL,
+    date TEXT NOT NULL,
+    FOREIGN KEY (event_id) REFERENCES Event(event_id),
+    FOREIGN KEY (track_id) REFERENCES Tracks(track_id)
+);
+
+CREATE TABLE Weather (
+    weather_id INTEGER PRIMARY KEY,
+    session_id INTEGER,
+    datetime DATETIME,
+    air_temperature_in_celsius REAL,
+    relative_air_humidity_in_percentage REAL,
+    air_pressure_in_mbar REAL,
+    is_raining BOOLEAN,
+    track_temperature_in_celsius REAL,
+    wind_direction_in_grads REAL,
+    wind_speed_in_meters_per_seconds REAL,
+    FOREIGN KEY (session_id) REFERENCES Sessions(session_id)
+);
+
+CREATE TABLE Laps (
+    lap_id INTEGER PRIMARY KEY,
+    session_id INTEGER,
+    driver_name TEXT NOT NULL,
+    lap_number INTEGER NOT NULL,
+    stint INTEGER,
+    sector_1_speed_trap_in_km REAL,
+    sector_2_speed_trap_in_km REAL,
+    finish_line_speed_trap_in_km REAL,
+    longest_strait_speed_trap_in_km REAL,
+    is_personal_best BOOLEAN,
+    tyre_compound TEXT,
+    tyre_life_in_laps INTEGER,
+    is_fresh_tyre BOOLEAN,
+    position INTEGER,
+    lap_time_in_seconds REAL,
+    sector_1_time_in_seconds REAL,
+    sector_2_time_in_seconds REAL,
+    sector_3_time_in_seconds REAL,
+    lap_start_time_in_datetime DATETIME,
+    pin_in_time_in_datetime DATETIME,
+    pin_out_time_in_datetime DATETIME,
+    FOREIGN KEY (session_id) REFERENCES Sessions(session_id),
+    UNIQUE (session_id, driver_name, lap_number)
+);
+
+CREATE TABLE Telemetry (
+    telemetry_id INTEGER PRIMARY KEY,
+    lap_id INTEGER,
+    speed_in_km REAL,
+    RPM INTEGER,
+    gear_number INTEGER,
+    throttle_input REAL CHECK (throttle_input BETWEEN 0 AND 100),
+    is_brake_pressed BOOLEAN,
+    is_DRS_open BOOLEAN,
+    x_position REAL,
+    y_position REAL,
+    z_position REAL,
+    is_off_track BOOLEAN,
+    datetime DATETIME,
+    FOREIGN KEY (lap_id) REFERENCES Laps(lap_id)
+);
+
+CREATE INDEX idx_laps_driver_name ON Laps(driver_name);
+CREATE INDEX idx_laps_session_id ON Laps(session_id);
+CREATE INDEX idx_telemetry_lap_id ON Telemetry(lap_id);
+CREATE INDEX idx_telemetry_datetime ON Telemetry(datetime);
+CREATE INDEX idx_weather_session_id ON Weather(session_id);
+CREATE INDEX idx_weather_datetime ON Weather(datetime);
+CREATE INDEX idx_event_date ON Event(event_date);
