@@ -29,7 +29,7 @@ load_dotenv()
 #         "OPENAI_API_KEY not found in environment variables.")
 
 # Initialize database connection
-db = SQLDatabase.from_uri("sqlite:///../db/Bahrain_2023_Q.db")
+db = SQLDatabase.from_uri("sqlite:///db/Bahrain_2023_Q.db")
 
 # Initialize LLM
 # llm = ChatOpenAI(model="gpt-4-0125-preview")
