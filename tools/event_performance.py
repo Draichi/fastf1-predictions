@@ -1,7 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import Type
 from langchain_core.tools import BaseTool
-from . import db, console
+from db.connection import db
+from . import console
 
 
 class GetEventPerformanceOutput(BaseModel):

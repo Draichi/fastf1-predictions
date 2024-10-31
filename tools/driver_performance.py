@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from langchain_core.tools import BaseTool
-from . import db, console
+from db.connection import db
+from . import console
 
 
 class GetDriverPerformanceOutput(BaseModel):

@@ -1,10 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import Type
 from langchain_core.tools import BaseTool
-from rich.console import Console
-from . import db
-
-console = Console(style="chartreuse1 on grey7")
+from db.connection import db
+from . import console
 
 
 class GetWeatherImpactInput(BaseModel):

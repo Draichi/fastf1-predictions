@@ -11,6 +11,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from gradio import ChatMessage
 import textwrap
 from tools import *
+from db.connection import db
 load_dotenv()
 os.environ['LANGCHAIN_PROJECT'] = 'gradio-test'
 
