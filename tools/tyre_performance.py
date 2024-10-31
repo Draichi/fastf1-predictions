@@ -2,9 +2,6 @@ from pydantic import BaseModel, Field
 from typing import Type
 from langchain_core.tools import BaseTool
 from db.connection import db
-from rich.console import Console
-
-console = Console(style="chartreuse1 on grey7")
 
 
 class GetTyrePerformanceInput(BaseModel):
@@ -44,7 +41,6 @@ class GetTyrePerformance(BaseTool):
         sql_query = sql_file.read()
         sql_file.close()
 
-        console.print("getting tyre performance data")
         response = db.run(sql_query, parameters={
             "driver_name": driver_name
         })

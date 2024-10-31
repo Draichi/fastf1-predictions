@@ -2,9 +2,6 @@ from pydantic import BaseModel, Field
 from typing import Type
 from langchain_core.tools import BaseTool
 from db.connection import db
-from rich.console import Console
-
-console = Console(style="chartreuse1 on grey7")
 
 
 class GetTelemetryAndWeatherInput(BaseModel):
@@ -44,11 +41,9 @@ class GetTelemetry(BaseTool):
     def _run(
         self, driver_name: str, lap_number: int
     ) -> GetTelemetryAndWeatherOutput:
-        # """Use the tool."""
         sql_file = open("tools/sql/telemetry_analysis.query.sql", "r")
         sql_query = sql_file.read()
         sql_file.close()
-        console.print("getting telemetry")
         response = db.run(sql_query, parameters={
             "driver_name": driver_name,
             "lap_number": lap_number})

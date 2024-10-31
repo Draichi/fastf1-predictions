@@ -2,9 +2,6 @@ from pydantic import BaseModel, Field
 from typing import Type
 from langchain_core.tools import BaseTool
 from db.connection import db
-from rich.console import Console
-
-console = Console(style="chartreuse1 on grey7")
 
 
 class GetWeatherImpactInput(BaseModel):
@@ -45,7 +42,6 @@ class GetWeatherImpact(BaseTool):
         sql_query = sql_file.read()
         sql_file.close()
 
-        console.print("getting weather impact data")
         response = db.run(sql_query)
 
         if not isinstance(response, str):
