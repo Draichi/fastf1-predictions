@@ -1,7 +1,6 @@
 import os
 import gradio as gr
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
 from langchain_community.utilities import SQLDatabase
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
@@ -9,30 +8,18 @@ from langgraph.prebuilt import create_react_agent
 from langchain.schema import AIMessage
 from rich.console import Console
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.agents.agent_toolkits import create_retriever_tool
-from langchain_community.vectorstores import FAISS
-from langchain_openai import OpenAIEmbeddings
-import ast
 from gradio import ChatMessage
-import re
+import textwrap
+from tools import GetTelemetry
+load_dotenv()
+os.environ['LANGCHAIN_PROJECT'] = 'gradio-test'
 
 console = Console(style="chartreuse1 on grey7")
 
-os.environ['LANGCHAIN_PROJECT'] = 'gradio-test'
-
-# Load environment variables
-load_dotenv()
-
-# # Ensure required environment variables are set
-# if not os.environ.get("OPENAI_API_KEY"):
-#     raise EnvironmentError(
-#         "OPENAI_API_KEY not found in environment variables.")
-
-# Initialize database connection
+# * Initialize database
 db = SQLDatabase.from_uri("sqlite:///db/Bahrain_2023_Q.db")
 
-# Initialize LLM
-# llm = ChatOpenAI(model="gpt-4-0125-preview")
+# * Initialize LLM
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash",
     temperature=0.7,
@@ -41,55 +28,21 @@ llm = ChatGoogleGenerativeAI(
     max_retries=2,
 )
 
+# * Initialize tools
 toolkit = SQLDatabaseToolkit(db=db, llm=llm)
 tools = toolkit.get_tools()
 
+get_telemetry_tool = GetTelemetry()
+tools.append(get_telemetry_tool)
 
-def query_as_list(db, query):
-    res = db.run(query)
-    res = [el for sub in ast.literal_eval(res) for el in sub if el]
-    res = [re.sub(r"\b\d+\b", "", string).strip() for string in res]
-    return list(set(res))
+# * Initialize agent
+agent_prompt = open("agent_prompt.txt", "r")
+system_prompt = textwrap.dedent(agent_prompt.read())
+agent_prompt.close()
+state_modifier = SystemMessage(content=system_prompt)
+agent = create_react_agent(llm, tools, state_modifier=state_modifier)
 
-
-drivers = query_as_list(db, "SELECT driver_name FROM Drivers")
-
-vector_db = FAISS.from_texts(drivers, OpenAIEmbeddings())
-retriever = vector_db.as_retriever(search_kwargs={"k": 5})
-description = """Use to look up values to filter on. Input is an approximate spelling of the proper noun, output is \
-valid proper nouns. Use the noun most similar to the search."""
-
-retriever_tool = create_retriever_tool(
-    retriever,
-    name="search_proper_nouns",
-    description=description,
-)
-tools.append(retriever_tool)
-
-# Define system message
-system = """You are an agent designed to interact with a SQL database.
-Given an input question, create a syntactically correct SQLite query to run, then look at the results of the query and return the answer.
-Unless the user specifies a specific number of examples they wish to obtain, always limit your query to at most 5 results.
-You can order the results by a relevant column to return the most interesting examples in the database.
-Never query for all the columns from a specific table, only ask for the relevant columns given the question.
-You have access to tools for interacting with the database.
-Only use the given tools. Only use the information returned by the tools to construct your final answer.
-You MUST double check your query before executing it. If you get an error while executing a query, rewrite the query and try again.
-
-DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.
-
-You have access to the following tables: {table_names}
-
-If you need to filter on a proper noun, you must ALWAYS first look up the filter value using the "search_proper_nouns" tool!
-Do not try to guess at the proper name - use this function to find similar ones.""".format(
-    table_names=db.get_usable_table_names()
-)
-
-
-system_message = SystemMessage(content=system)
-
-# Create agent
-agent = create_react_agent(llm, tools, state_modifier=system_message)
+# * Interact with agent
 
 
 async def interact_with_agent(message, history):
@@ -118,8 +71,8 @@ async def interact_with_agent(message, history):
                             role="assistant", content=msg.content, metadata={"title": "💬 Assistant"}))
                         yield history
 
+# * Initialize Gradio
 theme = gr.themes.Ocean()
-
 with gr.Blocks(theme=theme, fill_height=True) as demo:
     gr.Markdown("# Formula 1 Briefing Generator")
     chatbot = gr.Chatbot(
