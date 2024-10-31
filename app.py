@@ -1,16 +1,14 @@
 import os
 import gradio as gr
 from dotenv import load_dotenv
-from langchain_community.utilities import SQLDatabase
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
 from langgraph.prebuilt import create_react_agent
 from langchain.schema import AIMessage
-from rich.console import Console
 from langchain_google_genai import ChatGoogleGenerativeAI
 from gradio import ChatMessage
 import textwrap
-from tools import *
+from tools import GetDriverPerformance, GetEventPerformance, GetTelemetry, GetTyrePerformance, GetWeatherImpact
 from db.connection import db
 load_dotenv()
 os.environ['LANGCHAIN_PROJECT'] = 'gradio-test'
