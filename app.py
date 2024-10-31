@@ -10,14 +10,9 @@ from rich.console import Console
 from langchain_google_genai import ChatGoogleGenerativeAI
 from gradio import ChatMessage
 import textwrap
-from tools import GetTelemetry
+from tools import *
 load_dotenv()
 os.environ['LANGCHAIN_PROJECT'] = 'gradio-test'
-
-console = Console(style="chartreuse1 on grey7")
-
-# * Initialize database
-db = SQLDatabase.from_uri("sqlite:///db/Bahrain_2023_Q.db")
 
 # * Initialize LLM
 llm = ChatGoogleGenerativeAI(
@@ -32,8 +27,17 @@ llm = ChatGoogleGenerativeAI(
 toolkit = SQLDatabaseToolkit(db=db, llm=llm)
 tools = toolkit.get_tools()
 
+get_driver_performance_tool = GetDriverPerformance()
+get_event_performance_tool = GetEventPerformance()
 get_telemetry_tool = GetTelemetry()
+get_tyre_performance_tool = GetTyrePerformance()
+get_weather_impact_tool = GetWeatherImpact()
+
+tools.append(get_driver_performance_tool)
+tools.append(get_event_performance_tool)
 tools.append(get_telemetry_tool)
+tools.append(get_tyre_performance_tool)
+tools.append(get_weather_impact_tool)
 
 # * Initialize agent
 agent_prompt = open("agent_prompt.txt", "r")
