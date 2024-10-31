@@ -8,8 +8,13 @@ from langchain.schema import AIMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 from gradio import ChatMessage
 import textwrap
-from tools import GetDriverPerformance, GetEventPerformance, GetTelemetry, GetTyrePerformance, GetWeatherImpact
+from tools import (GetDriverPerformance, GetEventPerformance,
+                   GetTelemetry, GetTyrePerformance, GetWeatherImpact)
+from rich.console import Console
 from db.connection import db
+
+console = Console(style="chartreuse1 on grey7")
+
 load_dotenv()
 os.environ['LANGCHAIN_PROJECT'] = 'gradio-test'
 
@@ -43,7 +48,8 @@ agent_prompt = open("agent_prompt.txt", "r")
 system_prompt = textwrap.dedent(agent_prompt.read())
 agent_prompt.close()
 state_modifier = SystemMessage(content=system_prompt)
-agent = create_react_agent(llm, tools, state_modifier=state_modifier)
+agent = create_react_agent(
+    llm, tools, state_modifier=state_modifier)
 
 # * Interact with agent
 
@@ -57,6 +63,8 @@ async def interact_with_agent(message, history):
             messages = chunk["tools"]["messages"]
             for msg in messages:
                 if isinstance(msg, ToolMessage):
+                    console.print(f"\n\n Used tool {msg.name}")
+                    console.print(msg.content)
                     history.append(ChatMessage(
                         role="assistant", content=msg.content, metadata={"title": f"🛠️ Used tool {msg.name}"}))
                     yield history
@@ -66,6 +74,8 @@ async def interact_with_agent(message, history):
             for msg in messages:
                 if isinstance(msg, AIMessage):
                     if msg.content:
+                        console.print(f"\n\n💬 Assistant: {msg.content}")
+                        console.print("-"*100)
                         history.append(ChatMessage(
                             role="assistant", content=msg.content, metadata={"title": "💬 Assistant"}))
                         yield history
@@ -90,8 +100,10 @@ with gr.Blocks(theme=theme, fill_height=True) as demo:
     input.submit(interact_with_agent, [
         input, chatbot], [chatbot])
     examples = gr.Examples(examples=[
-        "How many fastest laps did Verstappen achieve?",
-        "How many pit stops did Hamilton make?"
+        "Highlight the telemetry data for Verstappen in the first lap",
+        "Compare sector times between Hamilton and Russell",
+        "Which driver had the best second sector?",
+        "How did track temperature affect lap times throughout qualifying?"
     ], inputs=input)
     btn = gr.Button("Submit", variant="primary")
     btn.click(fn=interact_with_agent, inputs=[input, chatbot], outputs=chatbot)
