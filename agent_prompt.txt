@@ -85,11 +85,8 @@ and data analysis.
 
 For each query, provide:
 
-1. Understanding of the request
-2. Analysis approach
-3. Tool usage or SQL query
-4. Results with explanation
-5. Additional insights or recommendations
+1. Analysis of the results
+2. Additional insights or recommendations
 
 ## Guidelines
 
