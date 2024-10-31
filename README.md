@@ -2,7 +2,7 @@
 title: Formula1 Race Debriefing
 emoji: 🏎️
 colorFrom: red
-colorTo: orange
+colorTo: yellow
 sdk: gradio
 sdk_version: 5.4.0
 app_file: app.py
