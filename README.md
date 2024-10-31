@@ -1,14 +1,18 @@
 ---
 title: Formula1 Race Debriefing
-emoji: 🔥
-colorFrom: gray
-colorTo: gray
+emoji: 🏎️
+colorFrom: red
+colorTo: orange
 sdk: gradio
-sdk_version: 5.3.0
+sdk_version: 5.4.0
 app_file: app.py
-pinned: false
+pinned: true
 license: mit
 short_description: Chat with the telemetry databases from Formula 1 races
+python_version: 3.11
+suggested_hardware: cpu-basic
+tags: ["formula1", "telemetry", "sql", "agent", "llm", "data analysis"]
+# thumbnail: https://www.bigdatawire.com/wp-content/uploads/2018/04/Mercedes_crew_shutterstock_Hafiz-Johari.jpg
 ---
 
 # FastF1 Predictions
