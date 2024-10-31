@@ -63,12 +63,8 @@ async def interact_with_agent(message, history):
                         role="assistant", content=msg.content, metadata={"title": f"🛠️ Used tool {msg.name}"}))
                     yield history
 
-        console.print(f"\nchunk:")
-        console.print(chunk)
         if "agent" in chunk:
             messages = chunk["agent"]["messages"]
-            console.print(f"\nmessages:")
-            console.print(messages)
             for msg in messages:
                 if isinstance(msg, AIMessage):
                     if msg.content:
