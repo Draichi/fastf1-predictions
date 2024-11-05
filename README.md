@@ -1,5 +1,5 @@
-<!-- ---
-title: Formula1 Race Debriefing
+---
+title: Formula 1 Report Generator
 emoji: 🏎️
 colorFrom: red
 colorTo: yellow
@@ -12,13 +12,13 @@ short_description: Chat with the telemetry databases from Formula 1 races
 python_version: 3.11
 suggested_hardware: cpu-basic
 tags: ["formula1", "telemetry", "sql", "agent", "llm", "data analysis"]
---- -->
+---
 
-# FastF1 Predictions
+# Formula 1 Report Generator
 
 ## Overview
 
-FastF1 Predictions is an innovative project aimed at predicting lap times in Formula 1 using telemetry data. Accurate lap time predictions are crucial in Formula 1 as they can influence strategic decisions during races, qualifying, and practice sessions. By leveraging advanced machine learning algorithms, FastF1 Predictions seeks to provide precise and reliable predictions to enhance the competitive edge of teams and drivers.
+Formula 1 Report Generator is an innovative project aimed at generating reports from Formula 1 telemetry data. Accurate lap time predictions are crucial in Formula 1 as they can influence strategic decisions during races, qualifying, and practice sessions. By leveraging advanced machine learning algorithms, FastF1 Predictions seeks to provide precise and reliable predictions to enhance the competitive edge of teams and drivers.
 
 ![image](./assets/sector-time.png)
 
