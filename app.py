@@ -83,7 +83,23 @@ async def interact_with_agent(message, history):
 # * Initialize Gradio
 theme = gr.themes.Ocean()
 with gr.Blocks(theme=theme, fill_height=True) as demo:
-    gr.Markdown("# Formula 1 Briefing Generator")
+    gr.Markdown("""# Formula 1 Briefing Generator
+
+                Welcome to the Formula 1 Briefing Generator - your AI-powered 
+                assistant for comprehensive race analysis. 
+                This innovative tool transforms complex Formula 1 race data into clear, 
+                detailed reports automatically. 
+                Whether you're interested in driver performance, tire strategies, or weather 
+                impacts, our system analyzes telemetry data to provide insights that previously 
+                required hours of expert analysis. This means teams, journalists, and fans 
+                can now get instant, data-driven race breakdowns without needing technical expertise.
+
+                To use this chatbot, simply type your question in the text box below. 
+                You can ask about specific driver performances, compare lap times between teammates, 
+                analyze tire degradation patterns, or understand how weather conditions affected the race. 
+                Try starting with questions like _"How did Verstappen perform in the first sector?"_ or 
+                _"Compare the tire strategies between Mercedes drivers."_ The AI will process your request 
+                and provide detailed answers backed by real race data.""")
     chatbot = gr.Chatbot(
         type="messages",
         label="Agent interaction",
@@ -109,6 +125,65 @@ with gr.Blocks(theme=theme, fill_height=True) as demo:
     btn.click(fn=interact_with_agent, inputs=[input, chatbot], outputs=chatbot)
     btn.click(lambda x: gr.update(value=''), [], [input])
     input.submit(lambda x: gr.update(value=''), [], [input])
+    gr.Markdown(
+        """---""")
+    gr.Markdown("""## How We Process Formula 1 Data
+
+    This application uses advanced AI techniques to translate your natural 
+                language questions into precise database queries:
+
+    1. **ReAct Agent**: The system uses a ReAct (Reasoning and Acting) agent that 
+                breaks down complex questions into logical steps. For example, when you ask about tire strategies, the agent plans how to:
+       - Query tire compound data
+       - Analyze pit stop timing
+       - Compare driver performances
+
+    2. **RAG (Retrieval Augmented Generation)**: We enhance our responses by retrieving 
+                relevant telemetry data from our Formula 1 database. This includes:
+       - Lap times
+       - Sector performances
+       - Tire data
+       - Weather conditions
+       - Track temperatures
+
+    3. **Text-to-SQL Translation**: Your natural language questions are converted into SQL 
+                queries that extract precise data from our telemetry database. 
+                The LLM understands racing context and generates accurate queries to fetch relevant information.
+
+    This combination allows us to provide data-driven insights about any aspect of the race, 
+                backed by real telemetry data.
+                
+    ## Next Steps
+
+    We're continuously working to enhance this application's capabilities:
+
+    1. **Expanded Race Coverage**:
+       - Add telemetry data from more Grand Prix events
+       - Include historical race data for trend analysis
+       - Incorporate practice and qualifying session data
+
+    2. **Vehicle Setup Database**:
+       - Track car setup configurations for each team
+       - Monitor setup changes between sessions
+       - Analyze correlation between setup and performance
+
+    3. **Simulator Integration**:
+       - Connect with racing simulators for predictive modeling
+       - Compare real telemetry with simulated data
+       - Test strategy scenarios in virtual environments
+
+    4. **Enhanced AI Capabilities**:
+       - Fine-tune language models on racing-specific data
+       - Add specialized tools for aerodynamic analysis
+       - Implement predictive models for race strategy
+       - Develop visual telemetry comparison tools
+
+    5. **Advanced Analytics**:
+       - Introduce machine learning for pattern recognition
+       - Develop tire degradation prediction models
+       - Add weather impact analysis tools
+                
+    Checkout the source code https://github.com/Draichi/formula1-AI don't forget to star the repo!""")
 
 
 demo.launch()
