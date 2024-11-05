@@ -12,7 +12,6 @@ short_description: Chat with the telemetry databases from Formula 1 races
 python_version: 3.11
 suggested_hardware: cpu-basic
 tags: ["formula1", "telemetry", "sql", "agent", "llm", "data analysis"]
-# thumbnail: https://www.bigdatawire.com/wp-content/uploads/2018/04/Mercedes_crew_shutterstock_Hafiz-Johari.jpg
 ---
 
 # FastF1 Predictions
