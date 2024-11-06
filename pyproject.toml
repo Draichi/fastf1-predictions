@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "briefing-generator"
+name = "formula1-ai"
 version = "0.1.0"
-description = "Using LLMs to analyse and generate race reports"
+description = "Using AI to analyse and generate race reports"
 authors = ["Lucas Draichi <lucasdraichi@gmail.com>"]
 license = "MIT"
 readme = "README.md"
