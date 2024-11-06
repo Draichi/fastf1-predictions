@@ -18,9 +18,11 @@ tags: ["formula1", "telemetry", "sql", "agent", "llm", "data analysis"]
 
 Formula 1 Report Generator is an innovative project aimed at generating reports from Formula 1 telemetry data. Accurate lap time predictions are crucial in Formula 1 as they can influence strategic decisions during races, qualifying, and practice sessions. By leveraging advanced machine learning algorithms and a **ReAct Agent implemented in `app.py`**, FastF1 Predictions seeks to provide precise and reliable predictions to enhance the competitive edge of teams and drivers.
 
-<video src="assets/demo.mp4" controls></video>
 
-Deployed on 🤗 [Hugging Face](https://huggingface.co/spaces/Draichi/Formula1-race-debriefing).
+https://github.com/user-attachments/assets/319b97f3-0607-4bd8-8573-2be1d093db1f
+
+
+Live demo on 🤗 [Hugging Face](https://huggingface.co/spaces/Draichi/Formula1-race-debriefing).
 
 ## Purpose
 
