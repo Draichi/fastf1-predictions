@@ -1,5 +1,5 @@
 ---
-title: Formula 1 Report Generator
+title: Formula 1 AI
 emoji: 🏎️
 colorFrom: red
 colorTo: yellow
@@ -14,13 +14,13 @@ suggested_hardware: cpu-basic
 tags: ["formula1", "telemetry", "sql", "agent", "llm", "data analysis"]
 ---
 
-# Formula 1 Report Generator
+# Formula 1 AI 🏁
 
-## Overview
+Formula 1 Report Generator is an innovative project aimed at generating reports from Formula 1 telemetry data. Accurate lap time predictions are crucial in Formula 1 as they can influence strategic decisions during races, qualifying, and practice sessions. By leveraging advanced machine learning algorithms and a **ReAct Agent implemented in `app.py`**, FastF1 Predictions seeks to provide precise and reliable predictions to enhance the competitive edge of teams and drivers.
 
-Formula 1 Report Generator is an innovative project aimed at generating reports from Formula 1 telemetry data. Accurate lap time predictions are crucial in Formula 1 as they can influence strategic decisions during races, qualifying, and practice sessions. By leveraging advanced machine learning algorithms, FastF1 Predictions seeks to provide precise and reliable predictions to enhance the competitive edge of teams and drivers.
+<video src="assets/demo.mp4" controls></video>
 
-![image](./assets/sector-time.png)
+Deployed on 🤗 [Hugging Face](https://huggingface.co/spaces/Draichi/Formula1-race-debriefing).
 
 ## Purpose
 
@@ -30,33 +30,50 @@ The primary goal of FastF1 Predictions is to utilize historical race data and te
 
 Currently, the project includes:
 
-- **notebooks/**: A directory containing Jupyter notebooks.
-  - **[sector-3-time-prediction.ipynb](./regression-models/sector-3-time-prediction.ipynb)**: A demonstration notebook showcasing how to use the algorithms to predict lap times based on historical telemetry data. There's also a [Kaggle notebook](https://www.kaggle.com/code/lucasdraichi/hamilton-lap-time-prediction)
+- **app.py**: The main application file implementing the **ReAct Agent** for interacting with telemetry data.
+- **regression-models/**:
+  - **[sector-3-time-prediction.ipynb](./regression-models/sector-3-time-prediction.ipynb)**: A demonstration notebook showcasing how to use the algorithms to predict lap times based on historical telemetry data.
 
 Future updates will expand the repository with more resources, including additional notebooks, scripts, and enhanced functionalities.
 
 ## Setup Instructions
 
-To get started with FastF1 Predictions, follow these steps:
+To get started with Formula 1 AI, follow these steps:
 
 ### Prerequisites
 
-Ensure you have Python installed (version 3.9).
+Ensure you have Python installed (version 3.11).
 
 ### Installation
 
 1. Clone the repository:
 
    ```sh
-   git clone https://github.com/Draichi/fastf1-predictions.git
-   cd fastf1-predictions
+   git clone https://github.com/Draichi/formula1-ai.git
+   cd formula1-ai
    ```
 
 2. Create a virtual environment:
 
    ```sh
    # Using Conda (recommended)
-   conda env create --file environment.yml
+   conda env create -n formula1-ai python=3.11
+
+   conda activate formula1-ai
+   ```
+
+3. Install the dependencies:
+
+   ```sh
+   poetry install
+   ```
+
+### Running the App
+
+1. Start the application in development mode:
+
+   ```sh
+   pymon app.py
    ```
 
 ### Running the Notebook
